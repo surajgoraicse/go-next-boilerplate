@@ -12,6 +12,14 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
+type Logger interface {
+	Debug(msg string, fields ...zap.Field)
+	Info(msg string, fields ...zap.Field)
+	Warn(msg string, fields ...zap.Field)
+	Error(msg string, fields ...zap.Field)
+	Fatal(msg string, fields ...zap.Field)
+}
+
 func NewLogger(cfg *config.Config) (*zap.Logger, error) {
 	level, err := parseLevel(cfg.LogLevel)
 	if err != nil {

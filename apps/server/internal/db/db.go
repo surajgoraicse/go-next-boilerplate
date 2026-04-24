@@ -3,8 +3,8 @@ package db
 import (
 	"context"
 	"fmt"
+	"log"
 
-	"github.com/coderz-space/coderz.space/internal/common/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/surajgoraicse/go-next-boilerplate/internal/config"
 )
@@ -36,6 +36,6 @@ func InitDB(cfg *config.Config) (*pgxpool.Pool, error) {
 	if err := pool.Ping(context.Background()); err != nil {
 		return nil, fmt.Errorf("error pinging database: %w", err)
 	}
-	logger.Info("database connection established")
+	log.Printf("database connection established")
 	return pool, nil
 }

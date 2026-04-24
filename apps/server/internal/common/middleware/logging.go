@@ -11,7 +11,7 @@ import (
 // Example usage:
 //
 //	e.Use(middleware.ZapLogger())
-func ZapLogger() echo.MiddlewareFunc {
+func ZapLogger(logger logger.Logger) echo.MiddlewareFunc {
 	return middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:       true,
 		LogStatus:    true,

@@ -21,16 +21,21 @@ type Container struct {
 }
 
 func NewContainer() *Container {
+	// config setup
 	cfg, err := config.Load()
 	if err != nil {
 		panic("failed to load the config")
 	}
 
+	// logger setup
 	logger, err := logger.NewLogger(cfg)
 	if err != nil {
 		panic("failed to initialize logger : error : " + err.Error())
 	}
 	defer func() { _ = logger.Sync() }()
+
+	// db setup
+
 	return &Container{
 		Config: cfg,
 		Logger: logger,
