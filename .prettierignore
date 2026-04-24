@@ -1,0 +1,20 @@
+# node
+node_modules
+.pnpm-store
+
+# build
+.next
+dist
+out
+
+# logs
+*.log
+
+# env
+.env*
+
+# go binaries
+bin/
+
+# misc
+coverage
