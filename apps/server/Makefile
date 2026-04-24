@@ -106,6 +106,11 @@ migrate-force:
 
 
 # -------------------- Docker : --------------------
+docker-db-up:
+	@echo "Starting docker containers..."
+	@docker compose up -d postgres
+
+
 docker-up:
 	@echo "Starting docker containers..."
 	@docker compose up -d
@@ -124,3 +129,13 @@ clean:
 
 logs:
 	docker compose logs -f
+
+# -------------------- Observability : --------------------
+observability-up:
+	@echo "Starting Prometheus and Grafana..."
+	@docker compose up -d prometheus grafana
+
+observability-down:
+	@echo "Stopping Prometheus and Grafana..."
+	@docker compose stop prometheus grafana
+

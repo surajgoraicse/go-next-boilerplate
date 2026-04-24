@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s # How often to scrape targets
+  evaluation_interval: 15s # How often to evaluate rules
+
+scrape_configs:
+  - job_name: 'go-api'
+    # The Go app runs on the Docker host; host.docker.internal resolves via
+    # extra_hosts: host.docker.internal:host-gateway in docker-compose.yml
+    static_configs:
+      - targets: ['host.docker.internal:8888']
+    metrics_path: /metrics

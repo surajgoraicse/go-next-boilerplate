@@ -35,6 +35,7 @@ func main() {
 	}))
 	e.Use(middleware.Recover())
 	e.Use(customMiddleware.ZapLogger(di.Logger))
+	e.Use(customMiddleware.PrometheusMiddleware())
 
 	routes.RegisterRoutes(e, di)
 	di.Logger.Info("Starting HTTP server", zap.String("port", di.Config.Port))
