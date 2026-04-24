@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:?ERROR-DB_USER is not set}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?ERROR-DB_PASSWORD is not set}
+      POSTGRES_DB: ${DB_NAME:?ERROR-DB_NAME is not set}
+    ports:
+      - 5434:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  migrate:
+    image: migrate/migrate:v4.17.0
+    volumes:
+      - type: bind
+        source: ./migrations
+        target: /migrations
+    depends_on:
+      - db
+    restart: on-failure
+
+volumes:
+  postgres_data:
