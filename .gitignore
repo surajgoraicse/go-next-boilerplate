@@ -32,6 +32,10 @@ secrets/
 # Go (backend/)
 #######################################
 
+# generated files
+swagger/
+sqlc/
+
 # Binaries
 bin/
 *.exe

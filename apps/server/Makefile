@@ -3,17 +3,19 @@
 export
 
 .PHONY: build run clear-logs sqlc docker-build docker-up docker-down logs fmt lint clean \
-test  swagger db-init db-reset reset-db migrate-up migrate-down migrate-create migrate-force
+test  swagger db-init db-reset reset-db migrate-up migrate-down migrate-create migrate-force clear-swagger
 
-MAIN="cmd/main.go"
-SQLC_FILE="internal/db/sqlc.yaml"
-PROJECT_NAME="boilerplate"
-DOCKER_POSTGRES_SERVICE_NAME="db"
+MAIN := cmd/main.go
+SQLC_FILE := internal/db/sqlc.yml
+SQLC := $(shell command -v sqlc 2>/dev/null)
+PROJECT_NAME := boilerplate
+DOCKER_POSTGRES_SERVICE_NAME := db
 
 DB_URL:="postgresql://$(DB_USER):$(DB_PASSWORD)@${DOCKER_POSTGRES_SERVICE_NAME}:5432/${DB_NAME}?sslmode=${DB_SSL_MODE}"
 
 # build the server
 build:
+	@mkdir -p bin
 	@echo "Building server..."
 	@go build -o bin/main ${MAIN}
 
@@ -41,7 +43,7 @@ test:
 swagger:
 	go run github.com/swaggo/swag/cmd/swag@latest init \
 		-o ./swagger --parseDependency --parseInternal \
-		-g cmd/api-server/main.go
+		-g ${MAIN}
 	@command -v npx > /dev/null 2>&1 && \
 		npx prettier --write swagger/swagger.json swagger/swagger.yaml || \
 		echo "npx not found, skipping prettier"
@@ -54,7 +56,12 @@ clear-swagger:
 # -------------------- Database -------------------- 
 sqlc:
 	@echo "Generating sqlc queries..."
-	go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.30.0 generate
+	@if [ -n "$(SQLC)" ]; then \
+		$(SQLC) generate -f ${SQLC_FILE}; \
+	else \
+		go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.30.0 generate -f ${SQLC_FILE}; \
+	fi
+	@echo "SQLC queries generated!"
 
 # Database initialization - run only consolidated baseline migration
 db-init:
@@ -74,7 +81,7 @@ reset-db:
 	@echo "Full database reset complete."
 
 # backword compatibility alias
-db-reset: ${MAKE} reset-db
+db-reset: reset-db
 
 # Migrations  
 migrate-up:

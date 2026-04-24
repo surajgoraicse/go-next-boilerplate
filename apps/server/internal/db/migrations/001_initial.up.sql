@@ -10,7 +10,7 @@ CREATE TYPE user_role AS ENUM(
 
 CREATE TYPE verification_purpose AS ENUM(
     'password_reset',
-    "email_verification",
+    'email_verification'
 );
 
 -- =====================================================
@@ -139,4 +139,3 @@ CREATE INDEX idx_verification_otps_expires_at ON verification_otps(expires_at);
 
 -- Index for user_id lookups
 CREATE INDEX idx_verification_otps_user_id ON verification_otps(user_id);
-
