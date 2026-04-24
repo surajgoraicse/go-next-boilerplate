@@ -43,7 +43,7 @@ func NewLogger(cfg *config.Config) (*zap.Logger, error) {
 	fileEncoder := zapcore.NewJSONEncoder(encoderCfg)
 
 	fileWriter := &lumberjack.Logger{
-		Filename:   "",
+		Filename:   cfg.LogFile,
 		MaxSize:    maxOrDefault(cfg.LogMaxSizeMB, 100),
 		MaxBackups: maxOrDefault(cfg.LogMaxBackups, 5),
 		MaxAge:     maxOrDefault(cfg.LogMaxAgeDays, 7),
