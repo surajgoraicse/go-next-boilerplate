@@ -15,7 +15,7 @@ const (
 )
 
 // middleware to check if the user is authenticated
-func AuthMiddleware(jwtSecret, _ /* jwtExpiryTime */ string) echo.MiddlewareFunc {
+func AuthMiddleware(jwtSecret string) echo.MiddlewareFunc {
 	echojwtConfig := echojwt.Config{
 		SigningKey: []byte(jwtSecret),
 		NewClaimsFunc: func(_ *echo.Context) jwt.Claims {

@@ -35,10 +35,18 @@ func (e Environment) isValidEnv() bool {
 const envFilePath = ".env"
 
 type Config struct {
-	Environment           Environment
-	Port                  string
-	LogLevel              string
-	FileLogLevel          string
+	// system
+	AppName       string
+	AppEnv        Environment
+	Port          string
+	LogLevel      string
+	LogFile       string
+	LogFileLevel  string
+	LogMaxSizeMB  int
+	LogMaxBackups int
+	LogMaxAgeDays int
+
+	// Database
 	DBURL                 string
 	DBMaxConn             int
 	DBMinConn             int
@@ -49,15 +57,17 @@ type Config struct {
 	EmailServiceBaseURL   string
 	EmailServiceToken     string
 	EmailProvider         string
-	JwtSecret             string
+	JWTSecret             string
 	AccessTokenExpiry     string // e.g., "15m"
 	RefreshTokenExpiry    string // e.g., "168h" (7 days)
+
 	// Google OAuth
 	GoogleClientID     string
 	GoogleClientSecret string
 	GoogleRedirectURL  string
 	GoogleOIDCIssuer   string
 	FrontendOrigin     string
+
 	// AWS S3 Config
 	AWSRegion          string
 	AWSS3Bucket        string
@@ -77,10 +87,18 @@ func Load() (*Config, error) {
 		}
 	}
 	cfg := &Config{
-		Port:                  getEnv("PORT"),
-		DBURL:                 getEnv("DB_URL"),
-		LogLevel:              getEnv("LOG_LEVEL"),
-		FileLogLevel:          getEnv("FILE_LOG_LEVEL"),
+		// system
+		AppName:       getEnv("APP_NAME"),
+		Port:          getEnv("PORT"),
+		DBURL:         getEnv("DB_URL"),
+		LogLevel:      getEnv("LOG_LEVEL"),
+		LogFile:       getEnv("LOG_FILE"),
+		LogFileLevel:  getEnv("FILE_LOG_LEVEL"),
+		LogMaxSizeMB:  parseInteger(getEnv("LOG_MAX_SIZE_MB")),
+		LogMaxBackups: parseInteger(getEnv("LOG_MAX_BACKUPS")),
+		LogMaxAgeDays: parseInteger(getEnv("LOG_MAX_AGE_DAYS")),
+
+		// database
 		DBMaxConn:             parseInteger(getEnvOrDefault("DB_MAX_CONN", "10")),
 		DBMinConn:             parseInteger(getEnvOrDefault("DB_MIN_CONN", "1")),
 		DBConnMaxLifetime:     parseDuration(getEnvOrDefault("DB_CONN_MAX_LIFETIME", "0")),
@@ -90,7 +108,7 @@ func Load() (*Config, error) {
 		EmailServiceBaseURL:   getEnv("EMAIL_SERVICE_BASE_URL"),
 		EmailServiceToken:     getEnv("EMAIL_SERVICE_TOKEN"),
 		EmailProvider:         getEnv("EMAIL_PROVIDER"),
-		JwtSecret:             getEnv("JWT_SECRET"),
+		JWTSecret:             getEnv("JWT_SECRET"),
 		AccessTokenExpiry:     getEnv("ACCESS_TOKEN_EXPIRY"),
 		RefreshTokenExpiry:    getEnv("REFRESH_TOKEN_EXPIRY"),
 		GoogleClientID:        getEnv("GOOGLE_CLIENT_ID"),
@@ -110,7 +128,7 @@ func Load() (*Config, error) {
 	if !appEnv.isValidEnv() {
 		return nil, ErrInvalidAppEnv
 	}
-	cfg.Environment = appEnv
+	cfg.AppEnv = appEnv
 	return cfg, nil
 }
 
@@ -127,7 +145,7 @@ func getEnv(key string) string {
 
 // getEnvOrDefault returns the value of the environment variable if it is set, otherwise it returns the default value
 func getEnvOrDefault(key string, val string) string {
-	if val := os.Getenv(key); val == "" {
+	if val = os.Getenv(key); val == "" {
 		return val
 	} else {
 		return val
