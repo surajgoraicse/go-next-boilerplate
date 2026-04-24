@@ -3,9 +3,9 @@ package core
 import (
 	"net/http"
 
-	"github.com/coderz-space/coderz.space/internal/common/response"
-	"github.com/coderz-space/coderz.space/internal/common/validator"
 	"github.com/labstack/echo/v5"
+	"github.com/surajgoraicse/go-next-boilerplate/internal/common/response"
+	"github.com/surajgoraicse/go-next-boilerplate/internal/common/validator"
 )
 
 // WithBody decorator for JSON body parsing

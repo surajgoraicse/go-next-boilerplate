@@ -9,7 +9,7 @@ MAIN := cmd/main.go
 SQLC_FILE := internal/db/sqlc.yml
 SQLC := $(shell command -v sqlc 2>/dev/null)
 PROJECT_NAME := boilerplate
-DOCKER_POSTGRES_SERVICE_NAME := db
+DOCKER_POSTGRES_SERVICE_NAME := postgres
 
 DB_URL:="postgresql://$(DB_USER):$(DB_PASSWORD)@${DOCKER_POSTGRES_SERVICE_NAME}:5432/${DB_NAME}?sslmode=${DB_SSL_MODE}"
 

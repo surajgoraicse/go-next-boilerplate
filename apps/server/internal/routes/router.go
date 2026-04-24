@@ -7,11 +7,10 @@ import (
 	"github.com/labstack/echo/v5"
 	authMiddleware "github.com/surajgoraicse/go-next-boilerplate/internal/common/middleware/auth"
 	"github.com/surajgoraicse/go-next-boilerplate/internal/container"
-	"github.com/surajgoraicse/go-next-boilerplate/internal/modules/auth"
 )
 
 // RegisterRoutes registers all the public and protected routes
-func RegisterRoutes(e *echo.Group, di *container.Container) {
+func RegisterRoutes(e *echo.Echo, di *container.Container) {
 	// health check api :
 	e.GET("/health", healthCheck)
 
@@ -20,7 +19,7 @@ func RegisterRoutes(e *echo.Group, di *container.Container) {
 	protectedRouter.Use(authMiddleware.AuthMiddleware(di.Config.JWTSecret))
 
 	// Auth module routes (public and protected)
-	auth.RegisterPubicRoutes(apiRouter)
+	// auth.RegisterPubicRoutes(apiRouter)
 
 }
 

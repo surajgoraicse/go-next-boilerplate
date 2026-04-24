@@ -1,5 +1,6 @@
 services:
-  db:
+  postgres:
+    container_name: postgres
     image: postgres:18-alpine
     environment:
       POSTGRES_USER: ${DB_USER:?ERROR-DB_USER is not set}
@@ -11,13 +12,14 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   migrate:
+    container_name: go_migrate
     image: migrate/migrate:v4.17.0
     volumes:
       - type: bind
-        source: ./migrations
+        source: ./internal/db/migrations
         target: /migrations
     depends_on:
-      - db
+      - postgres
     restart: on-failure
 
 volumes:

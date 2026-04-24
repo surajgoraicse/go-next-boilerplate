@@ -18,6 +18,7 @@ type Logger interface {
 	Warn(msg string, fields ...zap.Field)
 	Error(msg string, fields ...zap.Field)
 	Fatal(msg string, fields ...zap.Field)
+	Sync() error
 }
 
 func NewLogger(cfg *config.Config) (*zap.Logger, error) {
