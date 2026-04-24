@@ -7,20 +7,20 @@ import (
 	"github.com/labstack/echo/v5"
 	authMiddleware "github.com/surajgoraicse/go-next-boilerplate/internal/common/middleware/auth"
 	"github.com/surajgoraicse/go-next-boilerplate/internal/container"
+	_ "github.com/surajgoraicse/go-next-boilerplate/swagger"
+	echoSwagger "github.com/swaggo/echo-swagger/v2"
 )
 
 // RegisterRoutes registers all the public and protected routes
 func RegisterRoutes(e *echo.Echo, di *container.Container) {
-	// health check api :
 	e.GET("/health", healthCheck)
 
 	apiRouter := e.Group("/api")
 	protectedRouter := apiRouter.Group("")
 	protectedRouter.Use(authMiddleware.AuthMiddleware(di.Config.JWTSecret))
 
-	// Auth module routes (public and protected)
-	// auth.RegisterPubicRoutes(apiRouter)
-
+	// Swagger docs
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 }
 
 // healthCheck godoc
