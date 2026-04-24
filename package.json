@@ -1,0 +1,40 @@
+{
+  "name": "boilerplate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "pnpm --filter web build",
+    "start": "pnpm --parallel --filter web start",
+    "dev:server": "make -C packages/server run",
+    "dev:web": "pnpm --filter web dev",
+    "lint": "pnpm --parallel --filter web lint",
+    "check": "pnpm --filter web check",
+    "format": "pnpm --filter web format",
+    "lint:fix": "pnpm --filter web \"lint:fix\"",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx,json,md,html,css}": [
+      "pnpm exec prettier --write"
+    ],
+    "**/*.go": [
+      "gofmt -w"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.11.1",
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-react": "^7.37.0",
+    "globals": "^15.9.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "prettier": "3.3.3"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.11.0",
+  "type": "module"
+}
