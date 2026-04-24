@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -36,20 +37,21 @@ const envFilePath = ".env"
 type Config struct {
 	Environment           Environment
 	Port                  string
-	DBUrl                 string
-	DBMaxConn             string
-	DBMinConn             string
-	DBConnMaxLifetime     string
-	DBConnMaxIdleLifetime string
-	DBHealthCheckPeriod   string
-	ConnectTimeout        string
+	LogLevel              string
+	FileLogLevel          string
+	DBURL                 string
+	DBMaxConn             int
+	DBMinConn             int
+	DBConnMaxLifetime     time.Duration
+	DBConnMaxIdleLifetime time.Duration
+	DBHealthCheckPeriod   time.Duration
+	ConnectTimeout        time.Duration
 	EmailServiceBaseURL   string
 	EmailServiceToken     string
 	EmailProvider         string
 	JwtSecret             string
 	AccessTokenExpiry     string // e.g., "15m"
 	RefreshTokenExpiry    string // e.g., "168h" (7 days)
-	LogLevel              string
 	// Google OAuth
 	GoogleClientID     string
 	GoogleClientSecret string
@@ -76,20 +78,21 @@ func Load() (*Config, error) {
 	}
 	cfg := &Config{
 		Port:                  getEnv("PORT"),
-		DBUrl:                 getEnv("DB_URL"),
-		DBMaxConn:             getEnvOrDefault("DB_MAX_CONN", "10"),
-		DBMinConn:             getEnvOrDefault("DB_MIN_CONN", "1"),
-		DBConnMaxLifetime:     getEnvOrDefault("DB_CONN_MAX_LIFETIME", "0"),
-		DBConnMaxIdleLifetime: getEnvOrDefault("DB_CONN_MAX_IDLE_LIFETIME", "0"),
-		DBHealthCheckPeriod:   getEnvOrDefault("DB_HEALTH_CHECK_PERIOD", "0"),
-		ConnectTimeout:        getEnvOrDefault("DB_CONNECT_TIMEOUT", "0"),
+		DBURL:                 getEnv("DB_URL"),
+		LogLevel:              getEnv("LOG_LEVEL"),
+		FileLogLevel:          getEnv("FILE_LOG_LEVEL"),
+		DBMaxConn:             parseInteger(getEnvOrDefault("DB_MAX_CONN", "10")),
+		DBMinConn:             parseInteger(getEnvOrDefault("DB_MIN_CONN", "1")),
+		DBConnMaxLifetime:     parseDuration(getEnvOrDefault("DB_CONN_MAX_LIFETIME", "0")),
+		DBConnMaxIdleLifetime: parseDuration(getEnvOrDefault("DB_CONN_MAX_IDLE_LIFETIME", "0")),
+		DBHealthCheckPeriod:   parseDuration(getEnvOrDefault("DB_HEALTH_CHECK_PERIOD", "0")),
+		ConnectTimeout:        parseDuration(getEnvOrDefault("DB_CONNECT_TIMEOUT", "0")),
 		EmailServiceBaseURL:   getEnv("EMAIL_SERVICE_BASE_URL"),
 		EmailServiceToken:     getEnv("EMAIL_SERVICE_TOKEN"),
 		EmailProvider:         getEnv("EMAIL_PROVIDER"),
 		JwtSecret:             getEnv("JWT_SECRET"),
 		AccessTokenExpiry:     getEnv("ACCESS_TOKEN_EXPIRY"),
 		RefreshTokenExpiry:    getEnv("REFRESH_TOKEN_EXPIRY"),
-		LogLevel:              getEnv("LOG_LEVEL"),
 		GoogleClientID:        getEnv("GOOGLE_CLIENT_ID"),
 		GoogleClientSecret:    getEnv("GOOGLE_CLIENT_SECRET"),
 		GoogleRedirectURL:     getEnv("GOOGLE_REDIRECT_URL"),
@@ -108,7 +111,6 @@ func Load() (*Config, error) {
 		return nil, ErrInvalidAppEnv
 	}
 	cfg.Environment = appEnv
-
 	return cfg, nil
 }
 
@@ -150,4 +152,14 @@ func parseInteger64(val string) int64 {
 		panic(err)
 	}
 	return i
+}
+
+// parseDuration converts a string to a time.Duration
+func parseDuration(val string) time.Duration {
+	val = strings.TrimSpace(val)
+	d, err := time.ParseDuration(val)
+	if err != nil {
+		panic(err)
+	}
+	return d
 }
