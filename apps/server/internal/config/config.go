@@ -47,19 +47,26 @@ type Config struct {
 	LogMaxAgeDays int
 
 	// Database
-	DBURL                 string
-	DBMaxConn             int
-	DBMinConn             int
+	DBHost                string
+	DBPort                string
+	DBUser                string
+	DBPassword            string
+	DBName                string
+	SSLMode               string
+	DBMaxConn             int32
+	DBMinConn             int32
 	DBConnMaxLifetime     time.Duration
 	DBConnMaxIdleLifetime time.Duration
 	DBHealthCheckPeriod   time.Duration
 	ConnectTimeout        time.Duration
-	EmailServiceBaseURL   string
-	EmailServiceToken     string
-	EmailProvider         string
-	JWTSecret             string
-	AccessTokenExpiry     string // e.g., "15m"
-	RefreshTokenExpiry    string // e.g., "168h" (7 days)
+
+	// Email
+	EmailServiceBaseURL string
+	EmailServiceToken   string
+	EmailProvider       string
+	JWTSecret           string
+	AccessTokenExpiry   string // e.g., "15m"
+	RefreshTokenExpiry  string // e.g., "168h" (7 days)
 
 	// Google OAuth
 	GoogleClientID     string
@@ -90,7 +97,6 @@ func Load() (*Config, error) {
 		// system
 		AppName:       getEnv("APP_NAME"),
 		Port:          getEnv("PORT"),
-		DBURL:         getEnv("DB_URL"),
 		LogLevel:      getEnv("LOG_LEVEL"),
 		LogFile:       getEnv("LOG_FILE"),
 		LogFileLevel:  getEnv("FILE_LOG_LEVEL"),
@@ -99,8 +105,14 @@ func Load() (*Config, error) {
 		LogMaxAgeDays: parseInteger(getEnv("LOG_MAX_AGE_DAYS")),
 
 		// database
-		DBMaxConn:             parseInteger(getEnvOrDefault("DB_MAX_CONN", "10")),
-		DBMinConn:             parseInteger(getEnvOrDefault("DB_MIN_CONN", "1")),
+		DBHost:                getEnv("DB_HOST"),
+		DBPort:                getEnv("DB_PORT"),
+		DBUser:                getEnv("DB_USER"),
+		DBPassword:            getEnv("DB_PASSWORD"),
+		DBName:                getEnv("DB_NAME"),
+		SSLMode:               getEnv("SSL_MODE"),
+		DBMaxConn:             int32(parseInteger(getEnvOrDefault("DB_MAX_CONN", "10"))),
+		DBMinConn:             int32(parseInteger(getEnvOrDefault("DB_MIN_CONN", "1"))),
 		DBConnMaxLifetime:     parseDuration(getEnvOrDefault("DB_CONN_MAX_LIFETIME", "0")),
 		DBConnMaxIdleLifetime: parseDuration(getEnvOrDefault("DB_CONN_MAX_IDLE_LIFETIME", "0")),
 		DBHealthCheckPeriod:   parseDuration(getEnvOrDefault("DB_HEALTH_CHECK_PERIOD", "0")),
@@ -144,9 +156,11 @@ func getEnv(key string) string {
 }
 
 // getEnvOrDefault returns the value of the environment variable if it is set, otherwise it returns the default value
-func getEnvOrDefault(key string, val string) string {
-	if val = os.Getenv(key); val == "" {
-		return val
+func getEnvOrDefault(key string, defaultValue string) string {
+	val := os.Getenv(key)
+	val = strings.TrimSpace(val)
+	if val == "" {
+		return defaultValue
 	} else {
 		return val
 	}
