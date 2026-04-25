@@ -7,6 +7,8 @@ import (
 	"github.com/surajgoraicse/go-next-boilerplate/internal/common/logger"
 	"github.com/surajgoraicse/go-next-boilerplate/internal/config"
 	"github.com/surajgoraicse/go-next-boilerplate/internal/db"
+	db_sqlc "github.com/surajgoraicse/go-next-boilerplate/internal/db/sqlc"
+	"github.com/surajgoraicse/go-next-boilerplate/internal/modules/auth"
 )
 
 type Container struct {
@@ -17,9 +19,10 @@ type Container struct {
 	// DB
 	DB *pgxpool.Pool
 
-	// ---------- modules ----------
+	// ----------  modules ----------
 	// auth
-
+	AuthService *auth.Service
+	AuthHandler *auth.Handler
 }
 
 func NewContainer(ctx context.Context) *Container {
@@ -43,11 +46,20 @@ func NewContainer(ctx context.Context) *Container {
 	}
 	logger.Info("db connected successfully")
 
+	queries := db_sqlc.New(db)
+
+	// ------ modules initialization ------
+	// auth module
+	authService := auth.NewService(queries, cfg)
+	authHandler := auth.NewHandler(authService)
+
 	logger.Info("all services initialized successfully")
 	return &Container{
-		Config: cfg,
-		Logger: logger,
-		DB:     db,
+		Config:      cfg,
+		Logger:      logger,
+		DB:          db,
+		AuthHandler: authHandler,
+		AuthService: authService,
 	}
 }
 

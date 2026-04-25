@@ -8,5 +8,6 @@ func RegisterPubicRoutes(e *echo.Group, handler *Handler) {
 }
 
 func RegisterPrivateRoutes(e *echo.Group, handler *Handler) {
+	// protectedAuthRouter := e.Group("/v1/auth")
 
 }

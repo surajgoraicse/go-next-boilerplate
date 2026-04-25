@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	authMiddleware "github.com/surajgoraicse/go-next-boilerplate/internal/common/middleware/auth"
 	"github.com/surajgoraicse/go-next-boilerplate/internal/container"
+	"github.com/surajgoraicse/go-next-boilerplate/internal/modules/auth"
 	_ "github.com/surajgoraicse/go-next-boilerplate/swagger"
 	echoSwagger "github.com/swaggo/echo-swagger/v2"
 )
@@ -19,12 +20,17 @@ func RegisterRoutes(e *echo.Echo, di *container.Container) {
 	// Prometheus metrics endpoint — not behind auth middleware
 	e.GET("/metrics", metricsHandler)
 
-	apiRouter := e.Group("/api")
-	protectedRouter := apiRouter.Group("")
-	protectedRouter.Use(authMiddleware.AuthMiddleware(di.Config.JWTSecret))
-
 	// Swagger docs
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	apiRouter := e.Group("/api")
+	protectedRouter := e.Group("/api")
+	protectedRouter.Use(authMiddleware.AuthMiddleware(di.Config.JWTSecret))
+
+	// register auth routes
+	auth.RegisterPubicRoutes(apiRouter, di.AuthHandler)
+	auth.RegisterPrivateRoutes(protectedRouter, di.AuthHandler)
+
 }
 
 // metricsHandler adapts the standard http.Handler from promhttp to Echo.
