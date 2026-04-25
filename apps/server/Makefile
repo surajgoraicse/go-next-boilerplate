@@ -11,7 +11,7 @@ SQLC := $(shell command -v sqlc 2>/dev/null)
 PROJECT_NAME := boilerplate
 DOCKER_POSTGRES_SERVICE_NAME := postgres
 
-DB_URL:="postgresql://$(DB_USER):$(DB_PASSWORD)@${DOCKER_POSTGRES_SERVICE_NAME}:5432/${DB_NAME}?sslmode=${DB_SSL_MODE}"
+DB_URL:=postgresql://$(DB_USER):$(DB_PASSWORD)@${DOCKER_POSTGRES_SERVICE_NAME}:5432/${DB_NAME}?sslmode=$(DB_SSL_MODE)
 
 # build the server
 build:
@@ -74,9 +74,9 @@ db-init:
 reset-db:
 	@echo "Resetting entire database (all schemas)..."
 	@echo "Terminating active connections..."
-	docker compose exec -T db psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${DB_NAME}' AND pid <> pg_backend_pid();"
-	docker compose exec -T db psql -U postgres -c "DROP DATABASE IF EXISTS \"${DB_NAME}\";"
-	docker compose exec -T db psql -U postgres -c "CREATE DATABASE \"${DB_NAME}\";"
+	docker compose exec -T ${DOCKER_POSTGRES_SERVICE_NAME} psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${DB_NAME}' AND pid <> pg_backend_pid();"
+	docker compose exec -T ${DOCKER_POSTGRES_SERVICE_NAME} psql -U postgres -c "DROP DATABASE IF EXISTS \"${DB_NAME}\";"
+	docker compose exec -T ${DOCKER_POSTGRES_SERVICE_NAME} psql -U postgres -c "CREATE DATABASE \"${DB_NAME}\";"
 	$(MAKE) db-init
 	@echo "Full database reset complete."
 
@@ -110,11 +110,21 @@ docker-db-up:
 	@echo "Starting docker containers..."
 	@docker compose up -d postgres
 
+docker-db-down:
+	@echo "Stopping docker containers..."
+	@docker compose stop postgres
+
+docker-observability-up:
+	@echo "Starting Prometheus and Grafana..."
+	@docker compose up -d prometheus grafana
+
+docker-observability-down:
+	@echo "Stopping Prometheus and Grafana..."
+	@docker compose stop prometheus grafana
 
 docker-up:
 	@echo "Starting docker containers..."
 	@docker compose up -d
-
 
 docker-down:
 	@echo "Stopping docker containers..."
@@ -123,19 +133,8 @@ docker-down:
 docker-build:
 	docker compose build
 
-
 clean:
 	docker compose down -v --remove-orphans
 
 logs:
 	docker compose logs -f
-
-# -------------------- Observability : --------------------
-observability-up:
-	@echo "Starting Prometheus and Grafana..."
-	@docker compose up -d prometheus grafana
-
-observability-down:
-	@echo "Stopping Prometheus and Grafana..."
-	@docker compose stop prometheus grafana
-

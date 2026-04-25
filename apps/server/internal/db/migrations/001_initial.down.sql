@@ -5,7 +5,8 @@ SET search_path TO boilerplate, public;
 -- =====================================================
 -- Drop Triggers (must be dropped before tables and functions)
 -- =====================================================
-DROP TRIGGER IF EXISTS trg_verification_sessions_token_updated_at ON users;
+DROP TRIGGER IF EXISTS trg_verification_sessions_token_updated_at ON verification_sessions_token;
+DROP TRIGGER IF EXISTS trg_verification_otps_updated_at ON verification_otps;
 DROP TRIGGER IF EXISTS trg_refresh_tokens_updated_at ON refresh_tokens;
 DROP TRIGGER IF EXISTS trg_users_updated_at ON users;
 
@@ -34,7 +35,7 @@ DROP TABLE IF EXISTS users;
 -- =====================================================
 -- Drop Functions
 -- =====================================================
-DROP FUNCTION IF EXISTS trigger_set_timestamp();
+DROP FUNCTION IF EXISTS update_updated_at_column();
 
 -- =====================================================
 -- Drop Types
