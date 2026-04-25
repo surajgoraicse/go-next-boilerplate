@@ -26,7 +26,7 @@ func NewContainer(ctx context.Context) *Container {
 	// config setup
 	cfg, err := config.Load()
 	if err != nil {
-		panic("failed to load the config")
+		panic("failed to load the config: " + err.Error())
 	}
 
 	// logger setup

@@ -85,7 +85,7 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-	err := godotenv.Load(envFilePath)
+	err := godotenv.Overload(envFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, ErrEnvFileNotFound

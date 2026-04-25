@@ -7,9 +7,9 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:?ERROR-DB_PASSWORD is not set}
       POSTGRES_DB: ${DB_NAME:?ERROR-DB_NAME is not set}
     ports:
-      - 5434:5432
+      - 5432:5432
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_boilerplate_volume:/var/lib/postgresql
 
   migrate:
     container_name: go_migrate
@@ -30,10 +30,10 @@ services:
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "9090:9090"
+      - '9090:9090'
     extra_hosts:
       # Lets Prometheus reach the Go app running on the Docker host
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
     restart: unless-stopped
 
   grafana:
@@ -49,11 +49,11 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
-      - "3005:3000"
+      - '3005:3000'
     depends_on:
       - prometheus
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  postgres_boilerplate_volume:
   grafana_data:

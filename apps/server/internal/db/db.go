@@ -45,12 +45,25 @@ func (ds *DatabaseService) Connect(ctx context.Context) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("error connecting to database: %v", err)
 	}
 
-	err = db.Ping(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error pinging database: %v", err)
-	}
+	connectDeadline := time.Now().Add(15 * time.Second)
+	for {
+		err = db.Ping(ctx)
+		if err == nil {
+			return db, nil
+		}
 
-	return db, nil
+		if time.Now().After(connectDeadline) {
+			db.Close()
+			return nil, fmt.Errorf("error pinging database: %v", err)
+		}
+
+		select {
+		case <-ctx.Done():
+			db.Close()
+			return nil, fmt.Errorf("error pinging database: %v", ctx.Err())
+		case <-time.After(500 * time.Millisecond):
+		}
+	}
 }
 
 func (ds *DatabaseService) withPgxConfig() (*pgxpool.Config, error) {
@@ -72,11 +85,11 @@ func (ds *DatabaseService) withPgxConfig() (*pgxpool.Config, error) {
 	dbConfig.HealthCheckPeriod = dbURLConfig.DBHealthCheckPeriod
 	dbConfig.ConnConfig.ConnectTimeout = dbURLConfig.ConnectTimeout
 
-	// Ensure all connections use swags_me schema by default
+	// Ensure all connections use the configured application schema by default.
 	if dbConfig.ConnConfig.RuntimeParams == nil {
 		dbConfig.ConnConfig.RuntimeParams = make(map[string]string)
 	}
-	dbConfig.ConnConfig.RuntimeParams["search_path"] = "swags_me,public"
+	dbConfig.ConnConfig.RuntimeParams["search_path"] = fmt.Sprintf("%s,public", dbURLConfig.DBName)
 
 	return dbConfig, nil
 }

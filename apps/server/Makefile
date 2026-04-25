@@ -11,7 +11,8 @@ SQLC := $(shell command -v sqlc 2>/dev/null)
 PROJECT_NAME := boilerplate
 DOCKER_POSTGRES_SERVICE_NAME := postgres
 
-DB_URL:=postgresql://$(DB_USER):$(DB_PASSWORD)@${DOCKER_POSTGRES_SERVICE_NAME}:5432/${DB_NAME}?sslmode=$(DB_SSL_MODE)
+DB_SSL_MODE_VALUE := $(firstword $(DB_SSL_MODE))
+DB_URL:=postgresql://$(DB_USER):$(DB_PASSWORD)@${DOCKER_POSTGRES_SERVICE_NAME}:5432/${DB_NAME}?sslmode=$(DB_SSL_MODE_VALUE)
 
 # build the server
 build:
@@ -26,7 +27,7 @@ lint:
 	golangci-lint run ./...
 
 # run the development server
-run:
+run: docker-up
 	@echo "Running server..."
 	@go run ${MAIN}
 
