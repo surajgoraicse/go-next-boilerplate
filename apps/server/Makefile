@@ -5,7 +5,7 @@ export
 .PHONY: build run clear-logs sqlc docker-build docker-up docker-down logs fmt lint clean \
 test  swagger db-init db-reset reset-db migrate-up migrate-down migrate-create migrate-force clear-swagger
 
-MAIN := cmd/main.go
+MAIN := cmd/api-server/main.go
 SQLC_FILE := internal/db/sqlc.yml
 SQLC := $(shell command -v sqlc 2>/dev/null)
 PROJECT_NAME := boilerplate
