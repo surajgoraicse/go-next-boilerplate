@@ -2,6 +2,10 @@ package main
 
 import (
 	"context"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
@@ -38,9 +42,28 @@ func main() {
 	e.Use(customMiddleware.PrometheusMiddleware())
 
 	routes.RegisterRoutes(e, di)
+
+	// signalCtx is cancelled when SIGINT or SIGTERM is received.
+	// Passing it to sc.Start tells Echo to begin a graceful drain of in-flight
+	// requests and then stop the server.
+	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	sc := echo.StartConfig{
+		Address:         ":" + di.Config.Port,
+		GracefulTimeout: 10 * time.Second,
+		OnShutdownError: func(err error) {
+			di.Logger.Error("Server forced to shutdown", zap.Error(err))
+		},
+	}
+
 	di.Logger.Info("Starting HTTP server", zap.String("port", di.Config.Port))
 
-	if err := e.Start(":" + di.Config.Port); err != nil {
-		di.Logger.Fatal("Failed to start server", zap.Error(err))
+	// Start blocks until the server stops. When signalCtx is cancelled,
+	// Echo waits up to GracefulTimeout for active requests to finish.
+	if err := sc.Start(signalCtx, e); err != nil {
+		di.Logger.Error("Server exited with error", zap.Error(err))
+	} else {
+		di.Logger.Info("Server exited cleanly")
 	}
 }
