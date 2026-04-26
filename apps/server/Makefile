@@ -3,7 +3,7 @@
 export
 
 .PHONY: build run clear-logs sqlc docker-build docker-up docker-down logs fmt lint clean \
-test  swagger db-init db-reset reset-db migrate-up migrate-down migrate-create migrate-force clear-swagger
+test  swagger db-init db-reset reset-db migrate-up migrate-down migrate-create migrate-force clear-swagger 
 
 MAIN := cmd/api-server/main.go
 SQLC_FILE := internal/db/sqlc.yml
@@ -19,6 +19,7 @@ build:
 	@mkdir -p bin
 	@echo "Building server..."
 	@go build -o bin/main ${MAIN}
+	@echo "Server built successfully"
 
 fmt:
 	gofmt -s -w .

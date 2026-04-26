@@ -28,8 +28,8 @@ func RegisterRoutes(e *echo.Echo, di *container.Container) {
 	protectedRouter.Use(authMiddleware.AuthMiddleware(di.Config.JWTSecret))
 
 	// register auth routes
-	auth.RegisterPubicRoutes(apiRouter, di.AuthHandler)
-	auth.RegisterPrivateRoutes(protectedRouter, di.AuthHandler)
+	auth.RegisterPublicRoutes(apiRouter, di.AuthHandler)
+	// auth.RegisterProtectedRoutes(protectedRouter, di.AuthHandler)
 
 }
 

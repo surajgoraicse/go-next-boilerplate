@@ -5,7 +5,8 @@ SET search_path TO boilerplate, public;
 -- =====================================================
 CREATE TYPE user_role AS ENUM(
     'admin',
-    'user'
+    'user',
+    'super_admin'
 );
 
 CREATE TYPE verification_purpose AS ENUM(
@@ -144,3 +145,4 @@ CREATE INDEX idx_verification_sessions_token_expires_at ON verification_sessions
 
 -- Index for user_id lookups
 CREATE INDEX idx_verification_sessions_token_user_id ON verification_sessions_token(user_id);
+
