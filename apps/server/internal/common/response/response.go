@@ -3,32 +3,22 @@ package response
 import "github.com/labstack/echo/v5"
 
 type apiResponse struct {
-	Data    any       `json:"data,omitempty"`
-	Error   *apiError `json:"error,omitempty"`
-	Message string    `json:"message,omitempty"`
-	Status  string    `json:"status,omitempty"`
-	Success bool      `json:"success,omitempty"`
-}
-
-type apiError struct {
+	Data    any    `json:"data,omitempty"`
 	Message string `json:"message,omitempty"`
-	Code    int    `json:"code,omitempty"`
+	Success bool   `json:"success,omitempty"`
+	Errors  string `json:"errors,omitempty"`
 }
 
-func NewResponse(c *echo.Context, statusCode int, status, message string, data any, err error) error {
+func NewResponse(c *echo.Context, statusCode int, message string, data any, err error) error {
 	res := &apiResponse{
 		Message: message,
 		Data:    data,
 		Success: true,
-		Status:  status,
 	}
 
 	if statusCode < 200 || statusCode >= 300 || err != nil {
 		res.Success = false
-		res.Error = &apiError{
-			Code:    statusCode,
-			Message: status,
-		}
+		res.Errors = err.Error()
 	}
 
 	return c.JSON(statusCode, res)
