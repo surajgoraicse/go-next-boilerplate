@@ -29,11 +29,11 @@ func HashPassword(password string) (string, error) {
 // Returns true if the password matches the hash
 // Example usage:
 //
-//	isValid := CheckPassword("mypassword", hashedPasswordFromDB)
+//	isValid := ComparePassword("mypassword", hashedPasswordFromDB)
 //	if !isValid {
 //	    return errors.New("invalid password")
 //	}
-func CheckPassword(password, hashedPassword string) bool {
+func ComparePassword(password, hashedPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	return err == nil
 }

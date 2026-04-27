@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -39,13 +40,13 @@ func AuthMiddleware(jwtSecret string) echo.MiddlewareFunc {
 			// Extract token from context (set by Echo JWT middleware)
 			token, ok := c.Get("user").(*jwt.Token)
 			if !ok {
-				return response.NewResponse(c, http.StatusUnauthorized, "STATUS_UNAUTHORIZED", "INVALID_TOKEN_FORMAT", nil, nil)
+				return response.NewResponse(c, http.StatusUnauthorized, "STATUS_UNAUTHORIZED", nil, errors.New("INVALID_TOKEN_FORMAT"))
 			}
 
 			// Parse claims into our custom struct
 			claims, ok := token.Claims.(*utils.TokenPayload)
 			if !ok {
-				return response.NewResponse(c, http.StatusUnauthorized, "STATUS_UNAUTHORIZED", "INVALID_TOKEN_CLAIMS", nil, nil)
+				return response.NewResponse(c, http.StatusUnauthorized, "STATUS_UNAUTHORIZED", nil, errors.New("INVALID_TOKEN_CLAIMS"))
 			}
 
 			// Store parsed claims in context for easy access

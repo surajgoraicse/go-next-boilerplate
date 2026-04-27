@@ -21,7 +21,7 @@ type Logger interface {
 	Sync() error
 }
 
-func NewLogger(cfg *config.Config) (*zap.Logger, error) {
+func NewLogger(cfg *config.Config) (Logger, error) {
 	level, err := parseLevel(cfg.LogLevel)
 	if err != nil {
 		return nil, err

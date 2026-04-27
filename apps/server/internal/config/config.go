@@ -61,12 +61,15 @@ type Config struct {
 	ConnectTimeout        time.Duration
 
 	// Email
-	EmailServiceBaseURL string
-	EmailServiceToken   string
-	EmailProvider       string
-	JWTSecret           string
-	AccessTokenExpiry   string // e.g., "15m"
-	RefreshTokenExpiry  string // e.g., "168h" (7 days)
+	EmailServiceBaseURL     string
+	EmailServiceToken       string
+	EmailProvider           string
+	VerificationEmailExpiry string
+
+	// Auth
+	JwtSecret          string
+	AccessTokenExpiry  time.Duration // e.g., "15m"
+	RefreshTokenExpiry time.Duration // e.g., "168h" (7 days)
 
 	// Google OAuth
 	GoogleClientID     string
@@ -82,6 +85,8 @@ type Config struct {
 	AWSSecretAccessKey string
 	PresignedURLExpiry int
 	UploadMaxFileSize  int64
+
+	MaxActiveDevices int
 }
 
 func Load() (*Config, error) {
@@ -119,23 +124,27 @@ func Load() (*Config, error) {
 		ConnectTimeout:        parseDuration(getEnvOrDefault("DB_CONNECT_TIMEOUT", "0")),
 
 		// email
-		EmailServiceBaseURL: getEnv("EMAIL_SERVICE_BASE_URL"),
-		EmailServiceToken:   getEnv("EMAIL_SERVICE_TOKEN"),
-		EmailProvider:       getEnv("EMAIL_PROVIDER"),
-		JWTSecret:           getEnv("JWT_SECRET"),
-		AccessTokenExpiry:   getEnv("ACCESS_TOKEN_EXPIRY"),
-		RefreshTokenExpiry:  getEnv("REFRESH_TOKEN_EXPIRY"),
-		GoogleClientID:      getEnv("GOOGLE_CLIENT_ID"),
-		GoogleClientSecret:  getEnv("GOOGLE_CLIENT_SECRET"),
-		GoogleRedirectURL:   getEnv("GOOGLE_REDIRECT_URL"),
-		GoogleOIDCIssuer:    getEnv("GOOGLE_OIDC_ISSUER"),
-		FrontendOrigin:      getEnv("FRONTEND_ORIGIN"),
-		AWSRegion:           getEnv("AWS_REGION"),
-		AWSS3Bucket:         getEnv("AWS_S3_BUCKET"),
-		AWSAccessKeyID:      getEnv("AWS_ACCESS_KEY_ID"),
-		AWSSecretAccessKey:  getEnv("AWS_SECRET_ACCESS_KEY"),
-		PresignedURLExpiry:  parseInteger(getEnv("PRESIGNED_URL_EXPIRY")),
-		UploadMaxFileSize:   parseInteger64(getEnv("UPLOAD_MAX_FILE_SIZE")),
+		EmailServiceBaseURL:     getEnv("EMAIL_SERVICE_BASE_URL"),
+		EmailServiceToken:       getEnv("EMAIL_SERVICE_TOKEN"),
+		EmailProvider:           getEnv("EMAIL_PROVIDER"),
+		VerificationEmailExpiry: getEnvOrDefault("VERIFICATION_EMAIL_EXPIRY", "15m"),
+
+		// Auth
+		JwtSecret:          getEnv("JWT_SECRET"),
+		AccessTokenExpiry:  parseDuration(getEnvOrDefault("ACCESS_TOKEN_EXPIRY", "15m")),
+		RefreshTokenExpiry: parseDuration(getEnvOrDefault("REFRESH_TOKEN_EXPIRY", "168h")),
+		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID"),
+		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET"),
+		GoogleRedirectURL:  getEnv("GOOGLE_REDIRECT_URL"),
+		GoogleOIDCIssuer:   getEnv("GOOGLE_OIDC_ISSUER"),
+		FrontendOrigin:     getEnv("FRONTEND_ORIGIN"),
+		AWSRegion:          getEnv("AWS_REGION"),
+		AWSS3Bucket:        getEnv("AWS_S3_BUCKET"),
+		AWSAccessKeyID:     getEnv("AWS_ACCESS_KEY_ID"),
+		AWSSecretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY"),
+		PresignedURLExpiry: parseInteger(getEnv("PRESIGNED_URL_EXPIRY")),
+		UploadMaxFileSize:  parseInteger64(getEnv("UPLOAD_MAX_FILE_SIZE")),
+		MaxActiveDevices:   parseInteger(getEnvOrDefault("MAX_ACTIVE_DEVICES", "3")),
 	}
 
 	appEnv := Environment(getEnv("APP_ENV"))

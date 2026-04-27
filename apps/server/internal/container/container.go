@@ -17,7 +17,8 @@ type Container struct {
 	Logger logger.Logger
 
 	// DB
-	DB *pgxpool.Pool
+	DB      *pgxpool.Pool
+	Queries *db_sqlc.Queries
 
 	// ----------  modules ----------
 	// auth
@@ -50,7 +51,7 @@ func NewContainer(ctx context.Context) *Container {
 
 	// ------ modules initialization ------
 	// auth module
-	authService := auth.NewService(queries, cfg)
+	authService := auth.NewService(queries, db, cfg, logger)
 	authHandler := auth.NewHandler(authService)
 
 	logger.Info("all services initialized successfully")
@@ -58,6 +59,7 @@ func NewContainer(ctx context.Context) *Container {
 		Config:      cfg,
 		Logger:      logger,
 		DB:          db,
+		Queries:     queries,
 		AuthHandler: authHandler,
 		AuthService: authService,
 	}

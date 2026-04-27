@@ -25,11 +25,11 @@ func RegisterRoutes(e *echo.Echo, di *container.Container) {
 
 	apiRouter := e.Group("/api")
 	protectedRouter := e.Group("/api")
-	protectedRouter.Use(authMiddleware.AuthMiddleware(di.Config.JWTSecret))
+	protectedRouter.Use(authMiddleware.AuthMiddleware(di.Config.JwtSecret))
 
 	// register auth routes
 	auth.RegisterPublicRoutes(apiRouter, di.AuthHandler)
-	// auth.RegisterProtectedRoutes(protectedRouter, di.AuthHandler)
+	auth.RegisterPrivateRoutes(protectedRouter, di.AuthHandler, authMiddleware.AuthMiddleware(di.Config.JwtSecret))
 
 }
 

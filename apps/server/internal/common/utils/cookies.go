@@ -2,8 +2,10 @@ package utils
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v5"
+	"github.com/surajgoraicse/go-next-boilerplate/internal/config"
 )
 
 // CookieConfig holds cookie configuration
@@ -83,4 +85,34 @@ func ClearAuthCookies(c *echo.Context, config CookieConfig) {
 		SameSite: config.SameSite,
 	}
 	c.SetCookie(refreshCookie)
+}
+
+func SetAuthCookies(c *echo.Context, tokens AuthTokens, config *config.Config) {
+	accessMaxAge := calculateCookieMaxAge(config.AccessTokenExpiry, 86400)
+	accessCookie := NewSecureCookie("auth_token", tokens.AccessToken, accessMaxAge, "/")
+	c.SetCookie(accessCookie)
+
+	refreshMaxAge := h.calculateCookieMaxAge(h.service.config.RefreshTokenExpiry, 604800)
+	refreshCookie := h.NewSecureCookie("refresh_token", tokens.RefreshToken, refreshMaxAge, "/")
+	c.SetCookie(refreshCookie)
+}
+
+func calculateCookieMaxAge(expiry string, fallback int) int {
+	duration, err := time.ParseDuration(expiry)
+	if err != nil {
+		return fallback
+	}
+	return int(duration.Seconds())
+}
+
+func NewSecureCookie(name string, value string, maxAge int, path string, appEnv config.Environment) *http.Cookie {
+	return &http.Cookie{
+		Name:     name,
+		Value:    value,
+		Path:     path,
+		HttpOnly: true,
+		Secure:   appEnv == config.Production,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   maxAge,
+	}
 }
