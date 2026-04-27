@@ -87,16 +87,6 @@ func ClearAuthCookies(c *echo.Context, config CookieConfig) {
 	c.SetCookie(refreshCookie)
 }
 
-func SetAuthCookies(c *echo.Context, tokens AuthTokens, config *config.Config) {
-	accessMaxAge := calculateCookieMaxAge(config.AccessTokenExpiry, 86400)
-	accessCookie := NewSecureCookie("auth_token", tokens.AccessToken, accessMaxAge, "/")
-	c.SetCookie(accessCookie)
-
-	refreshMaxAge := h.calculateCookieMaxAge(h.service.config.RefreshTokenExpiry, 604800)
-	refreshCookie := h.NewSecureCookie("refresh_token", tokens.RefreshToken, refreshMaxAge, "/")
-	c.SetCookie(refreshCookie)
-}
-
 func calculateCookieMaxAge(expiry string, fallback int) int {
 	duration, err := time.ParseDuration(expiry)
 	if err != nil {

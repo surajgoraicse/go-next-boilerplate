@@ -75,12 +75,12 @@ func WithQuery[Q any](handler func(*echo.Context, Q) error) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		var query Q
 		if err := (&echo.DefaultBinder{}).Bind(c, &query); err != nil {
-			return response.NewResponse(c, http.StatusBadRequest, "INVALID_QUERY_PARAMETERS", "Failed to bind query parameters", nil, err)
+			return response.NewResponse(c, http.StatusBadRequest, "Failed to bind query parameters", nil, err)
 		}
 
 		// Validate the bound query parameters
 		if err := validator.NewValidator().ValidateStruct(query); err != nil {
-			return response.NewResponse(c, http.StatusBadRequest, "VALIDATION_ERROR", "Query validation failed", nil, err)
+			return response.NewResponse(c, http.StatusBadRequest, "Query validation failed", nil, err)
 		}
 
 		return handler(c, query)
@@ -105,21 +105,21 @@ func WithBodyAndParams[B any, P any](handler func(*echo.Context, B, P) error) ec
 		// Bind and validate body
 		var body B
 		if err := (&echo.DefaultBinder{}).Bind(c, &body); err != nil {
-			return response.NewResponse(c, http.StatusBadRequest, "INVALID_REQUEST_BODY", "Failed to bind request body", nil, err)
+			return response.NewResponse(c, http.StatusBadRequest, "Failed to bind request body", nil, err)
 		}
 
 		if err := validator.NewValidator().ValidateStruct(body); err != nil {
-			return response.NewResponse(c, http.StatusBadRequest, "VALIDATION_ERROR", "Body validation failed", nil, err)
+			return response.NewResponse(c, http.StatusBadRequest, "Body validation failed", nil, err)
 		}
 
 		// Bind and validate path parameters
 		var params P
 		if err := (&echo.DefaultBinder{}).Bind(c, &params); err != nil {
-			return response.NewResponse(c, http.StatusBadRequest, "INVALID_URL_PARAMETERS", "Failed to bind path parameters", nil, err)
+			return response.NewResponse(c, http.StatusBadRequest, "Failed to bind path parameters", nil, err)
 		}
 
 		if err := validator.NewValidator().ValidateStruct(params); err != nil {
-			return response.NewResponse(c, http.StatusBadRequest, "VALIDATION_ERROR", "Parameters validation failed", nil, err)
+			return response.NewResponse(c, http.StatusBadRequest, "Parameters validation failed", nil, err)
 		}
 
 		return handler(c, body, params)
@@ -144,21 +144,21 @@ func WithParamsAndQuery[P any, Q any](handler func(*echo.Context, P, Q) error) e
 		// Bind and validate path parameters
 		var params P
 		if err := (&echo.DefaultBinder{}).Bind(c, &params); err != nil {
-			return response.NewResponse(c, http.StatusBadRequest, "INVALID_URL_PARAMETERS", "Failed to bind path parameters", nil, err)
+			return response.NewResponse(c, http.StatusBadRequest, "Failed to bind path parameters", nil, err)
 		}
 
 		if err := validator.NewValidator().ValidateStruct(params); err != nil {
-			return response.NewResponse(c, http.StatusBadRequest, "VALIDATION_ERROR", "Parameters validation failed", nil, err)
+			return response.NewResponse(c, http.StatusBadRequest, "Parameters validation failed", nil, err)
 		}
 
 		// Bind and validate query parameters
 		var query Q
 		if err := (&echo.DefaultBinder{}).Bind(c, &query); err != nil {
-			return response.NewResponse(c, http.StatusBadRequest, "INVALID_QUERY_PARAMETERS", "Failed to bind query parameters", nil, err)
+			return response.NewResponse(c, http.StatusBadRequest, "Failed to bind query parameters", nil, err)
 		}
 
 		if err := validator.NewValidator().ValidateStruct(query); err != nil {
-			return response.NewResponse(c, http.StatusBadRequest, "VALIDATION_ERROR", "Query validation failed", nil, err)
+			return response.NewResponse(c, http.StatusBadRequest, "Query validation failed", nil, err)
 		}
 
 		return handler(c, params, query)

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/labstack/echo/v5"
 	"github.com/surajgoraicse/go-next-boilerplate/internal/common/logger"
 	"github.com/surajgoraicse/go-next-boilerplate/internal/common/utils"
 	"github.com/surajgoraicse/go-next-boilerplate/internal/config"
@@ -54,40 +55,42 @@ func NewService(queries *db_sqlc.Queries, db *pgxpool.Pool, config *config.Confi
 	}
 }
 
+// setAuthCookies sets both auth cookies with the appropriate expiry times.
+func (s *Service) setAuthCookies(c *echo.Context, tokens utils.AuthTokens) {
+	accessTokenMaxAge := int(s.config.AccessTokenExpiry.Seconds())
+	accessCookie := utils.NewSecureCookie("auth_token", tokens.AccessToken, accessTokenMaxAge, "/", s.config.AppEnv)
+	c.SetCookie(accessCookie)
+
+	refreshTokenMaxAge := int(s.config.RefreshTokenExpiry.Seconds())
+	refreshCookie := utils.NewSecureCookie("refresh_token", tokens.RefreshToken, refreshTokenMaxAge, "/", s.config.AppEnv)
+	c.SetCookie(refreshCookie)
+}
+
+// clearAuthCookies clears both auth cookies.
+func (s *Service) clearAuthCookies(c *echo.Context) {
+	c.SetCookie(utils.NewSecureCookie("auth_token", "", -1, "/", s.config.AppEnv))
+	c.SetCookie(utils.NewSecureCookie("refresh_token", "", -1, "/", s.config.AppEnv))
+}
+
+// setVerificationSessionCookie sets the verification_session cookie with a expiry.
+func (s *Service) setVerificationSessionCookie(c *echo.Context, sessionToken string, expiry time.Duration) {
+	verificationCookie := utils.NewSecureCookie("verification_session", sessionToken, int(expiry.Seconds()), "/", s.config.AppEnv)
+	c.SetCookie(verificationCookie)
+}
+
+// clearVerificationSessionCookie clears the verification_session cookie.
+func (s *Service) clearVerificationSessionCookie(c *echo.Context) {
+	c.SetCookie(utils.NewSecureCookie("verification_session", "", -1, "/", s.config.AppEnv))
+}
+
 // generateAndStoreVerificationToken generates a secure token, stores its hash in the DB,
 // and returns the raw token string along with the new token's ID for use in exclusion logic.
 func (s *Service) generateAndStoreVerificationToken(ctx context.Context, q *db_sqlc.Queries, userID pgtype.UUID) (string, pgtype.UUID, error) {
 	return "", pgtype.UUID{}, nil
-	// rawToken, tokenHash, err := utils.GenerateSecureToken()
-	// if err != nil {
-	// 	return "", pgtype.UUID{}, err
-	// }
+}
 
-	// // Parse token expiry
-	// expiryDuration, err := time.ParseDuration(s.config.VerificationEmailExpiry)
-	// if err != nil {
-	// 	expiryDuration = 24 * time.Hour
-	// 	s.logger.Warn("invalid verification email expiry config, falling back to 24h",
-	// 		zap.String("config", s.config.VerificationEmailExpiry),
-	// 		zap.Error(err))
-	// }
-
-	// var cbURL pgtype.Text
-	// if s.IsValidCallbackURL(callbackURL) {
-	// 	cbURL = pgtype.Text{String: callbackURL, Valid: true}
-	// }
-
-	// newToken, err := q.InsertVerificationToken(ctx, db.InsertVerificationTokenParams{
-	// 	UserID:      userID,
-	// 	TokenHash:   tokenHash,
-	// 	ExpiresAt:   pgtype.Timestamp{Time: time.Now().Add(expiryDuration), Valid: true},
-	// 	CallbackUrl: cbURL,
-	// })
-	// if err != nil {
-	// 	return "", pgtype.UUID{}, err
-	// }
-
-	// return rawToken, newToken.ID, nil
+func (s *Service) deliverVerificationEmail(userID pgtype.UUID, email string, rawToken string) error {
+	return nil
 }
 
 // generateAuthTokens creates both access and refresh tokens and persists the session
@@ -124,10 +127,6 @@ func (s *Service) generateAuthTokens(ctx context.Context, q *db_sqlc.Queries, us
 		AccessToken:  accessToken,
 		RefreshToken: rawRefresh,
 	}, nil
-}
-
-func (s *Service) deliverVerificationEmail(userID pgtype.UUID, email string, rawToken string) error {
-	return nil
 }
 
 // Register registers a new user
