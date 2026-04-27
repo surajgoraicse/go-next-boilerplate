@@ -22,6 +22,17 @@ services:
       - postgres
     restart: on-failure
 
+  # ── Email Server ────────────────────────────────────────────────────────────
+
+  email-server:
+    build: .
+    image: surajgoraicse/email-server-py:latest
+    ports:
+      - '${PORT:-5000}:${PORT:-5000}'
+    env_file:
+      - .env
+    restart: unless-stopped
+
   # ── Observability ────────────────────────────────────────────────────────────
 
   prometheus:

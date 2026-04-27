@@ -112,7 +112,6 @@ func (s *Service) generateAuthTokens(ctx context.Context, q *db_sqlc.Queries, us
 	// Upsert session in DB
 	expiresAt := time.Now().Add(s.config.RefreshTokenExpiry)
 	_, err = q.UpsertRefreshSession(ctx, db_sqlc.UpsertRefreshSessionParams{
-		ID:               pgtype.UUID{Bytes: uuid.New(), Valid: true},
 		UserID:           userID,
 		DeviceID:         deviceID,
 		RefreshTokenHash: tokenHash,
@@ -238,7 +237,12 @@ func (s *Service) SignIn(ctx context.Context, req LoginRequest, deviceID pgtype.
 
 	// 5. Generate device ID if missing
 	if !deviceID.Valid {
-		deviceID = pgtype.UUID{Bytes: uuid.New(), Valid: true}
+		newID, err := uuid.NewV7()
+		if err != nil {
+			s.logger.Error("failed to generate device id", zap.Error(err))
+			return utils.AuthTokens{}, pgtype.UUID{}, http.StatusInternalServerError, err
+		}
+		deviceID = pgtype.UUID{Bytes: newID, Valid: true}
 	}
 
 	// 6. generate tokens and store session
@@ -359,4 +363,75 @@ func (s *Service) Logout(ctx context.Context, userID pgtype.UUID, deviceID pgtyp
 func (s *Service) LogoutAll(ctx context.Context, userID pgtype.UUID) error {
 	_, err := s.queries.RevokeAllSessionsByUser(ctx, userID)
 	return err
+}
+
+// SendVerificationEmail sends a verification magic link.
+// Only allow VerificationEmailRateLimit emails per day.
+func (s *Service) SendVerificationEmail(ctx context.Context, email string) (int, error) {
+	// 1. check user in db
+	user, err := s.queries.GetUserByEmail(ctx, pgtype.Text{String: email, Valid: true})
+	if err != nil {
+		if utils.DbErrIsNotFound(err) {
+			s.logger.Error("user not found", zap.String("email", email), zap.Error(err))
+			return http.StatusBadRequest, ErrUserNotFound
+		}
+		s.logger.Error("error getting user by email", zap.String("email", email), zap.Error(err))
+		return http.StatusInternalServerError, err
+	}
+
+	// 2. check user already verified - noting to do
+	if user.EmailVerified {
+		s.logger.Info("user already verified", zap.String("email", email))
+		return http.StatusBadRequest, ErrUserAlreadyVerified
+	}
+
+	// 3. check rate limit : only allow VerificationEmailRateLimit tokens per day eg. 5 req per day
+	count, err := s.queries.CountVerificationTokensSentRecently(ctx, db.CountVerificationTokensSentRecentlyParams{
+		UserID:    user.ID,
+		CreatedAt: pgtype.Timestamp{Time: time.Now().Add(-24 * time.Hour), Valid: true},
+	})
+	if err == nil && count >= int64(s.config.VerificationEmailRateLimit) {
+		return http.StatusTooManyRequests, ErrTooManyRequests
+	}
+
+	// 4. generate and store verification token
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		s.logger.Error("failed to begin resend transaction", zap.Error(err))
+		return http.StatusInternalServerError, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	txq := s.queries.WithTx(tx)
+	rawToken, newTokenID, err := s.generateAndStoreVerificationToken(ctx, txq, user.ID)
+	if err != nil {
+		s.logger.Error("failed to generate/store new verification token inside transaction",
+			zap.String("user_id", user.ID.String()),
+			zap.Error(err))
+		return http.StatusInternalServerError, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		s.logger.Error("failed to commit resend transaction", zap.Error(err))
+		return http.StatusInternalServerError, err
+	}
+
+	// 5. send email
+	if err := s.deliverVerificationEmail(user.ID, user.Email.String, rawToken); err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// 6.  Revoke any existing active tokens ONLY after successful delivery of the new one.
+	// This prevents the "dead zone" if the new email fails to send.
+	// We exclude the newly created token (newTokenID) so it remains active.
+	if err := s.queries.RevokeActiveTokensByUserID(ctx, db.RevokeActiveTokensByUserIDParams{
+		UserID: user.ID,
+		ID:     newTokenID,
+	}); err != nil {
+		s.logger.Warn("failed to revoke old verification tokens after successful resend",
+			zap.String("user_id", user.ID.String()),
+			zap.Error(err))
+		// We don't return an error here because the new email was successfully sent.
+	}
+
+	return http.StatusOK, nil
 }

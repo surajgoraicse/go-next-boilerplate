@@ -61,11 +61,11 @@ type Config struct {
 	ConnectTimeout        time.Duration
 
 	// Email
-	EmailServiceBaseURL     string
-	EmailServiceToken       string
-	EmailProvider           string
-	VerificationEmailExpiry string
-
+	EmailServiceBaseURL        string
+	EmailServiceToken          string
+	EmailProvider              string
+	VerificationEmailExpiry    string
+	VerificationEmailRateLimit int
 	// Auth
 	JwtSecret          string
 	AccessTokenExpiry  time.Duration // e.g., "15m"
@@ -124,10 +124,11 @@ func Load() (*Config, error) {
 		ConnectTimeout:        parseDuration(getEnvOrDefault("DB_CONNECT_TIMEOUT", "0")),
 
 		// email
-		EmailServiceBaseURL:     getEnv("EMAIL_SERVICE_BASE_URL"),
-		EmailServiceToken:       getEnv("EMAIL_SERVICE_TOKEN"),
-		EmailProvider:           getEnv("EMAIL_PROVIDER"),
-		VerificationEmailExpiry: getEnvOrDefault("VERIFICATION_EMAIL_EXPIRY", "15m"),
+		EmailServiceBaseURL:        getEnv("EMAIL_SERVICE_BASE_URL"),
+		EmailServiceToken:          getEnv("EMAIL_SERVICE"),
+		EmailProvider:              getEnv("EMAIL_PROVIDER"),
+		VerificationEmailExpiry:    getEnvOrDefault("VERIFICATION_EMAIL_EXPIRY", "15m"),
+		VerificationEmailRateLimit: parseInteger(getEnvOrDefault("VERIFICATION_EMAIL_RATE_LIMIT", "5")),
 
 		// Auth
 		JwtSecret:          getEnv("JWT_SECRET"),
@@ -138,6 +139,8 @@ func Load() (*Config, error) {
 		GoogleRedirectURL:  getEnv("GOOGLE_REDIRECT_URL"),
 		GoogleOIDCIssuer:   getEnv("GOOGLE_OIDC_ISSUER"),
 		FrontendOrigin:     getEnv("FRONTEND_ORIGIN"),
+
+		// AWS credentials
 		AWSRegion:          getEnv("AWS_REGION"),
 		AWSS3Bucket:        getEnv("AWS_S3_BUCKET"),
 		AWSAccessKeyID:     getEnv("AWS_ACCESS_KEY_ID"),
