@@ -1,6 +1,6 @@
 -- name: UpsertRefreshSession :one
-INSERT INTO refresh_sessions(id, user_id, device_id, refresh_token_hash, issued_at, revoked_at, expires_at, last_used_at, created_at, updated_at)
-    VALUES ($1, $2, $3, $4, now(), NULL, $5, now(), now(), now())
+INSERT INTO refresh_sessions(user_id, device_id, refresh_token_hash, issued_at, revoked_at, expires_at, last_used_at, created_at, updated_at)
+    VALUES ($1, $2, $3, now(), NULL, $4, now(), now(), now())
 ON CONFLICT (user_id, device_id)
     DO UPDATE SET
         refresh_token_hash = EXCLUDED.refresh_token_hash,
