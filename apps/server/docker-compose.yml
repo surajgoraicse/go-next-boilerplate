@@ -24,6 +24,7 @@ services:
 
   # ── Email Server ────────────────────────────────────────────────────────────
 
+# TODO: configure the environment variables
   email-server:
     build: .
     image: surajgoraicse/email-server-py:latest
